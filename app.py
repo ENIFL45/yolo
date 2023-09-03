@@ -20,6 +20,7 @@ from io import BytesIO
 import io
 import json
 from PIL import Image
+import pytesseract
 
 # construct the argument parse and parse the arguments
 
@@ -177,6 +178,24 @@ def main():
     np_img=Image.fromarray(image)
     img_encoded=image_to_byte_array(np_img)
     return Response(response=img_encoded, status=200,mimetype="image/jpeg")
+
+@app.route('/detecttext', methods=['POST'])
+def detect_text():
+    try:
+        # Read the uploaded image
+        image_data = request.files['image'].read()
+        image = cv2.imdecode(np.frombuffer(image_data, np.uint8), cv2.IMREAD_COLOR)
+
+        # Perform text detection using OCR (Tesseract)
+        text = pytesseract.image_to_string(image)
+
+        # Create a response with the detected text
+        response_data = {'detected_text': text}
+        return jsonify(response_data)
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 
     # start flask app
 if __name__ == '__main__':
